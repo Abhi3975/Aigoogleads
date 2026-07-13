@@ -108,6 +108,52 @@ class GoogleAdsClientWrapper:
             "status": "PAUSED" if paused else "ENABLED",
         }
 
+    def set_campaign_status(
+        self, *, customer_id: str, campaign_id: str, status: str
+    ) -> dict[str, str]:
+        from google.api_core import protobuf_helpers
+
+        client = self._build_client()
+        cid = _digits(customer_id)
+        with self._translate_errors():
+            service = client.get_service("CampaignService")
+            op = client.get_type("CampaignOperation")
+            campaign = op.update
+            campaign.resource_name = service.campaign_path(cid, campaign_id)
+            campaign.status = client.enums.CampaignStatusEnum[status.upper()]
+            client.copy_from(op.update_mask, protobuf_helpers.field_mask(None, campaign._pb))
+            service.mutate_campaigns(customer_id=cid, operations=[op])
+        return {"campaign_id": str(campaign_id), "status": status.upper()}
+
+    def update_campaign_budget(
+        self, *, customer_id: str, campaign_id: str, daily_budget: float
+    ) -> dict[str, str]:
+        from google.api_core import protobuf_helpers
+
+        client = self._build_client()
+        cid = _digits(customer_id)
+        with self._translate_errors():
+            # Resolve the campaign's budget resource, then update its amount.
+            rows = self.search(
+                cid,
+                "SELECT campaign_budget.resource_name FROM campaign "
+                f"WHERE campaign.id = {int(campaign_id)}",
+            )
+            if not rows:
+                from app.core.exceptions import NotFoundError
+
+                raise NotFoundError(f"Campaign {campaign_id} not found.")
+            budget_rn = rows[0].campaign_budget.resource_name
+
+            service = client.get_service("CampaignBudgetService")
+            op = client.get_type("CampaignBudgetOperation")
+            budget = op.update
+            budget.resource_name = budget_rn
+            budget.amount_micros = round(daily_budget * 1_000_000)
+            client.copy_from(op.update_mask, protobuf_helpers.field_mask(None, budget._pb))
+            service.mutate_campaign_budgets(customer_id=cid, operations=[op])
+        return {"campaign_id": str(campaign_id), "daily_budget": str(daily_budget)}
+
     # -- Error translation -------------------------------------------------
     def _translate_errors(self) -> Any:
         wrapper = self

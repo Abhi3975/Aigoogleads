@@ -204,6 +204,69 @@ class GoogleAdsService:
         await self.session.commit()
         return CreateCampaignResult(**result)
 
+    # -- Mutations used by the Execution agent -----------------------------
+    async def set_campaign_status(
+        self,
+        *,
+        organization_id: uuid.UUID,
+        customer_id: str,
+        campaign_id: str,
+        status: str,
+        actor_user_id: uuid.UUID | None = None,
+        meta: RequestMeta | None = None,
+    ) -> dict[str, str]:
+        connection = await self.require_connection(organization_id)
+        await self._require_account(organization_id, customer_id)
+        wrapper = self._wrapper_for(connection)
+        result = await run_in_threadpool(
+            wrapper.set_campaign_status,
+            customer_id=customer_id,
+            campaign_id=campaign_id,
+            status=status,
+        )
+        await self.audit.record(
+            "google_ads.set_campaign_status",
+            actor_user_id=actor_user_id,
+            organization_id=organization_id,
+            resource_type="campaign",
+            resource_id=str(campaign_id),
+            context={"status": status.upper(), "customer_id": customer_id},
+            meta=meta,
+        )
+        await self.session.commit()
+        return result
+
+    async def update_campaign_budget(
+        self,
+        *,
+        organization_id: uuid.UUID,
+        customer_id: str,
+        campaign_id: str,
+        daily_budget: float,
+        actor_user_id: uuid.UUID | None = None,
+        meta: RequestMeta | None = None,
+    ) -> dict[str, str]:
+        connection = await self.require_connection(organization_id)
+        await self._require_account(organization_id, customer_id)
+        wrapper = self._wrapper_for(connection)
+        result = await run_in_threadpool(
+            wrapper.update_campaign_budget,
+            customer_id=customer_id,
+            campaign_id=campaign_id,
+            daily_budget=daily_budget,
+        )
+        await self.audit.record(
+            "google_ads.update_budget",
+            actor_user_id=actor_user_id,
+            organization_id=organization_id,
+            resource_type="campaign",
+            resource_id=str(campaign_id),
+            context={"daily_budget": daily_budget, "customer_id": customer_id},
+            meta=meta,
+        )
+        await self.session.commit()
+        return result
+
     # -- Helpers -----------------------------------------------------------
     @staticmethod
     def duplicate_guard(existing: GoogleAdsConnection | None) -> None:
