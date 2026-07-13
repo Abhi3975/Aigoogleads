@@ -63,6 +63,9 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
     GOOGLE_OAUTH_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/google/callback"
+    GOOGLE_ADS_OAUTH_REDIRECT_URI: str = (
+        "http://localhost:8000/api/v1/integrations/google-ads/callback"
+    )
     GOOGLE_ADS_DEVELOPER_TOKEN: str = ""
     GOOGLE_ADS_LOGIN_CUSTOMER_ID: str = ""
 

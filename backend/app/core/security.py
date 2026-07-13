@@ -125,6 +125,29 @@ def generate_state_token() -> str:
     return secrets.token_urlsafe(32)
 
 
+def create_signed_state(payload: dict[str, Any], *, ttl_seconds: int = 600) -> str:
+    """Sign a short-lived, tamper-proof OAuth ``state`` value (JWT)."""
+    now = datetime.now(UTC)
+    data = {
+        **payload,
+        "purpose": "oauth_state",
+        "iat": int(now.timestamp()),
+        "exp": int((now + timedelta(seconds=ttl_seconds)).timestamp()),
+    }
+    return jwt.encode(data, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+
+
+def verify_signed_state(token: str) -> dict[str, Any]:
+    """Validate and decode a signed OAuth ``state`` value."""
+    try:
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+    except jwt.PyJWTError as exc:
+        raise UnauthorizedError("Invalid OAuth state.", error_code="invalid_oauth_state") from exc
+    if payload.get("purpose") != "oauth_state":
+        raise UnauthorizedError("Invalid OAuth state.", error_code="invalid_oauth_state")
+    return payload
+
+
 def sha256(value: str) -> str:
     return hashlib.sha256(value.encode()).hexdigest()
 
