@@ -26,7 +26,7 @@ dependencies = [
     "celery>=5.4.0",
     # --- Auth / security ---
     "pyjwt>=2.9.0",
-    "passlib[bcrypt]>=1.7.4",
+    "bcrypt>=4.1.0",
     "cryptography>=43.0.0",
     "authlib>=1.3.2",
     # --- HTTP / integrations ---
@@ -59,7 +59,6 @@ dev = [
     "pytest-cov>=5.0.0",
     "httpx>=0.27.0",
     "asgi-lifespan>=2.1.0",
-    "types-passlib>=1.7.7",
     "pre-commit>=3.8.0",
 ]
 
@@ -90,10 +89,17 @@ select = [
     "ASYNC",         # async best practices
     "RUF",           # ruff-specific
 ]
-ignore = ["B008"]  # allow FastAPI Depends() in defaults
+ignore = [
+    "B008",   # allow FastAPI Depends()/Query() in argument defaults
+    "UP042",  # keep explicit (str, Enum); StrEnum has different str() semantics
+    "UP046",  # keep Generic[T] base — interoperates cleanly with Pydantic models
+    "UP047",  # keep classic generic function syntax for consistency
+]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101"]
+# Settings expose DSNs as UPPERCASE computed properties (read like constants).
+"app/core/config.py" = ["N802"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]

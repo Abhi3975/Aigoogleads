@@ -8,18 +8,20 @@ from app.models.audit_log import AuditLog
 from app.models.base import Base, SoftDeleteMixin, TimestampMixin, UUIDMixin
 from app.models.enums import AuditAction, OrgPlan, OrgRole
 from app.models.organization import Organization, OrganizationMembership
+from app.models.refresh_token import RefreshToken
 from app.models.user import User
 
 __all__ = [
+    "AuditAction",
+    "AuditLog",
     "Base",
-    "UUIDMixin",
-    "TimestampMixin",
-    "SoftDeleteMixin",
-    "User",
+    "OrgPlan",
+    "OrgRole",
     "Organization",
     "OrganizationMembership",
-    "AuditLog",
-    "OrgRole",
-    "OrgPlan",
-    "AuditAction",
+    "RefreshToken",
+    "SoftDeleteMixin",
+    "TimestampMixin",
+    "UUIDMixin",
+    "User",
 ]

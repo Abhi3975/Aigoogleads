@@ -18,6 +18,22 @@ class OrgRole(str, enum.Enum):
     VIEWER = "viewer"
 
 
+# Privilege ranking (higher number = more privileged). Used by RBAC checks:
+# a member satisfies a required role when their rank >= the required rank.
+ROLE_RANK: dict[OrgRole, int] = {
+    OrgRole.VIEWER: 10,
+    OrgRole.ANALYST: 20,
+    OrgRole.MANAGER: 30,
+    OrgRole.ADMIN: 40,
+    OrgRole.OWNER: 50,
+}
+
+
+def role_rank(role: OrgRole) -> int:
+    """Return the numeric privilege rank of a role."""
+    return ROLE_RANK[role]
+
+
 class OrgPlan(str, enum.Enum):
     """Billing plan for an organization (billing-ready architecture)."""
 

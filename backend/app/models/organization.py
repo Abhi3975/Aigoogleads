@@ -39,7 +39,7 @@ class Organization(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
         index=True,
     )
 
-    memberships: Mapped[list["OrganizationMembership"]] = relationship(
+    memberships: Mapped[list[OrganizationMembership]] = relationship(
         back_populates="organization",
         cascade="all, delete-orphan",
     )
@@ -73,8 +73,8 @@ class OrganizationMembership(UUIDMixin, TimestampMixin, Base):
         nullable=False,
     )
 
-    organization: Mapped["Organization"] = relationship(back_populates="memberships")
-    user: Mapped["User"] = relationship(back_populates="memberships")
+    organization: Mapped[Organization] = relationship(back_populates="memberships")
+    user: Mapped[User] = relationship(back_populates="memberships")
 
     def __repr__(self) -> str:  # pragma: no cover - debug helper
         return f"<Membership org={self.organization_id} user={self.user_id} role={self.role}>"

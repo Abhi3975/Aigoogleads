@@ -6,8 +6,8 @@ Run in prod:   gunicorn app.main:app -k uvicorn.workers.UvicornWorker
 
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 import sentry_sdk
 from fastapi import FastAPI
