@@ -62,7 +62,7 @@ class ForbiddenError(AppError):
 
 
 class ValidationError(AppError):
-    status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+    status_code = 422  # Unprocessable Content (version-stable literal)
     error_code = "validation_error"
     message = "Validation failed."
 
@@ -93,7 +93,7 @@ def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(RequestValidationError)
     async def _handle_validation(_: Request, exc: RequestValidationError) -> JSONResponse:
         return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=422,
             content=_error_body("validation_error", "Request validation failed", exc.errors()),
         )
 

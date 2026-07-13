@@ -11,12 +11,19 @@ T = TypeVar("T")
 
 
 class HealthResponse(BaseModel):
-    """Liveness/readiness payload."""
+    """Liveness payload."""
 
     status: str = Field(examples=["ok"])
     service: str
     version: str
     environment: str
+
+
+class ReadinessResponse(BaseModel):
+    """Readiness payload — aggregate status plus per-dependency checks."""
+
+    status: str = Field(examples=["ok", "degraded"])
+    checks: dict[str, str]
 
 
 class Message(BaseModel):
