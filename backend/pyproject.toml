@@ -1,0 +1,120 @@
+[project]
+name = "ai-ads-agent-backend"
+version = "0.1.0"
+description = "Autonomous AI Google Ads management platform — FastAPI backend"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+
+dependencies = [
+    # --- Web framework ---
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "gunicorn>=23.0.0",
+    "python-multipart>=0.0.12",
+    # --- Config / validation ---
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.5.0",
+    "email-validator>=2.2.0",
+    # --- Database ---
+    "sqlalchemy[asyncio]>=2.0.35",
+    "alembic>=1.13.0",
+    "asyncpg>=0.30.0",
+    "psycopg2-binary>=2.9.9",
+    # --- Cache / queue ---
+    "redis>=5.1.0",
+    "celery>=5.4.0",
+    # --- Auth / security ---
+    "pyjwt>=2.9.0",
+    "passlib[bcrypt]>=1.7.4",
+    "cryptography>=43.0.0",
+    "authlib>=1.3.2",
+    # --- HTTP / integrations ---
+    "httpx>=0.27.0",
+    "tenacity>=9.0.0",
+    "google-ads>=25.1.0",
+    "google-auth>=2.35.0",
+    # --- AI ---
+    "langgraph>=0.2.0",
+    "langchain>=0.3.0",
+    "langchain-core>=0.3.0",
+    "langchain-openai>=0.2.0",
+    "openai>=1.51.0",
+    # --- Observability ---
+    "structlog>=24.4.0",
+    "sentry-sdk[fastapi]>=2.16.0",
+    # --- Email ---
+    "jinja2>=3.1.4",
+    "aiosmtplib>=3.0.2",
+    # --- Rate limiting ---
+    "slowapi>=0.1.9",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.6.9",
+    "mypy>=1.11.0",
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=5.0.0",
+    "httpx>=0.27.0",
+    "asgi-lifespan>=2.1.0",
+    "types-passlib>=1.7.7",
+    "pre-commit>=3.8.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+# ---------------------------------------------------------------------------
+# Ruff — lint + format
+# ---------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["app", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",   # pycodestyle / pyflakes
+    "I",             # isort
+    "N",             # pep8-naming
+    "UP",            # pyupgrade
+    "B",             # flake8-bugbear
+    "C4",            # comprehensions
+    "SIM",           # simplify
+    "ASYNC",         # async best practices
+    "RUF",           # ruff-specific
+]
+ignore = ["B008"]  # allow FastAPI Depends() in defaults
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+# ---------------------------------------------------------------------------
+# mypy — static typing
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.12"
+plugins = ["pydantic.mypy"]
+strict = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+exclude = ["alembic/"]
+
+# ---------------------------------------------------------------------------
+# pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-ra -q --strict-markers"
