@@ -18,6 +18,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { NotificationsBell } from '@/components/notifications-bell';
+import { OrgSwitcher } from '@/components/org-switcher';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/providers/auth-provider';
@@ -47,6 +48,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Sparkles className="size-5 text-primary" />
           <span className="font-semibold">AI Ads Agent</span>
         </div>
+        <OrgSwitcher />
         <nav className="flex-1 space-y-1 p-3">
           {NAV.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(`${href}/`);

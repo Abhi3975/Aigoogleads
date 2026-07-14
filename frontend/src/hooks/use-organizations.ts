@@ -1,8 +1,9 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { Organization } from '@/lib/types';
+import { useOrgSelection } from '@/providers/org-provider';
 
 export function useOrganizations() {
   return useQuery({
@@ -11,8 +12,18 @@ export function useOrganizations() {
   });
 }
 
-/** The user's primary organization (their default workspace). */
+/** The active organization: the user's selection, else their first workspace. */
 export function useCurrentOrg() {
   const query = useOrganizations();
-  return { ...query, org: query.data?.[0] ?? null };
+  const { selectedOrgId, setSelectedOrgId } = useOrgSelection();
+  const org = query.data?.find((o) => o.id === selectedOrgId) ?? query.data?.[0] ?? null;
+  return { ...query, org, setSelectedOrgId };
+}
+
+export function useCreateOrganization() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (name: string) => api.post<Organization>('/organizations', { name }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['organizations'] }),
+  });
 }

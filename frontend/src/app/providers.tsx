@@ -6,6 +6,7 @@ import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
 import { useState, type ReactNode } from 'react';
 import { AuthProvider } from '@/providers/auth-provider';
+import { OrgProvider } from '@/providers/org-provider';
 
 /** Global client-side providers: theming, data fetching, toasts. */
 export function Providers({ children }: { children: ReactNode }) {
@@ -25,7 +26,9 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <OrgProvider>{children}</OrgProvider>
+        </AuthProvider>
         <Toaster richColors closeButton position="top-right" />
         {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
       </QueryClientProvider>
