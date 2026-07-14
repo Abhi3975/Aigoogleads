@@ -268,6 +268,18 @@ export interface AnalyticsTimeseries {
   points: TimeseriesPoint[];
 }
 
+export interface AIInsight {
+  id: string;
+  agent_name: string;
+  insight_type: string;
+  observation: string;
+  outcome: string | null;
+  importance_score: number;
+  confidence: number;
+  data: Record<string, unknown>;
+  created_at: string;
+}
+
 export interface DailyReport {
   id: string;
   customer_id: string;
