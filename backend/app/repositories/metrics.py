@@ -6,7 +6,7 @@ import uuid
 from datetime import date
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.metrics import CampaignMetric, DailyPerformanceReport
@@ -56,6 +56,48 @@ class CampaignMetricRepository(BaseRepository[CampaignMetric]):
             .limit(limit)
         )
         return list((await self.session.execute(stmt)).scalars().all())
+
+    async def latest_per_campaign(
+        self, organization_id: uuid.UUID, customer_id: str | None = None
+    ) -> list[CampaignMetric]:
+        """The most recent snapshot for each campaign (org- or account-scoped)."""
+        latest = select(
+            CampaignMetric.campaign_id,
+            func.max(CampaignMetric.date).label("max_date"),
+        ).where(CampaignMetric.organization_id == organization_id)
+        if customer_id is not None:
+            latest = latest.where(CampaignMetric.customer_id == customer_id)
+        latest = latest.group_by(CampaignMetric.campaign_id).subquery()
+
+        stmt = (
+            select(CampaignMetric)
+            .join(
+                latest,
+                (CampaignMetric.campaign_id == latest.c.campaign_id)
+                & (CampaignMetric.date == latest.c.max_date),
+            )
+            .where(CampaignMetric.organization_id == organization_id)
+        )
+        if customer_id is not None:
+            stmt = stmt.where(CampaignMetric.customer_id == customer_id)
+        return list((await self.session.execute(stmt)).scalars().all())
+
+    async def daily_totals(
+        self, organization_id: uuid.UUID, customer_id: str | None = None, *, limit: int = 90
+    ) -> list[tuple]:
+        """Per-day aggregated totals across campaigns (newest first, capped)."""
+        stmt = select(
+            CampaignMetric.date,
+            func.sum(CampaignMetric.cost).label("cost"),
+            func.sum(CampaignMetric.clicks).label("clicks"),
+            func.sum(CampaignMetric.impressions).label("impressions"),
+            func.sum(CampaignMetric.conversions).label("conversions"),
+            func.sum(CampaignMetric.conversions_value).label("conversions_value"),
+        ).where(CampaignMetric.organization_id == organization_id)
+        if customer_id is not None:
+            stmt = stmt.where(CampaignMetric.customer_id == customer_id)
+        stmt = stmt.group_by(CampaignMetric.date).order_by(CampaignMetric.date.desc()).limit(limit)
+        return list((await self.session.execute(stmt)).all())
 
 
 class DailyPerformanceReportRepository(BaseRepository[DailyPerformanceReport]):
