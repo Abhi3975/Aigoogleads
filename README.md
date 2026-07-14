@@ -51,8 +51,11 @@ make backend-install && make backend-run     # FastAPI on :8000
 make frontend-install && make frontend-run    # Next.js on :3000
 ```
 
-See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for design details and the
-per-milestone build plan.
+## Documentation
+
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — design & per-milestone plan
+- [`docs/GOOGLE_ADS.md`](docs/GOOGLE_ADS.md) — Google Ads integration & verification
+- [`docs/CAMPAIGN_CREATION.md`](docs/CAMPAIGN_CREATION.md) — autonomous campaign creation flow
 
 ## Development conventions
 

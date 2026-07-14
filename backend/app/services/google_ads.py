@@ -267,6 +267,25 @@ class GoogleAdsService:
         await self.session.commit()
         return result
 
+    async def build_full_campaign(
+        self,
+        *,
+        organization_id: uuid.UUID,
+        customer_id: str,
+        structure: dict,
+        paused: bool = True,
+    ) -> dict:
+        """Create a complete campaign from a blueprint structure (live)."""
+        connection = await self.require_connection(organization_id)
+        await self._require_account(organization_id, customer_id)
+        wrapper = self._wrapper_for(connection)
+        return await run_in_threadpool(
+            wrapper.build_full_campaign,
+            customer_id=customer_id,
+            structure=structure,
+            paused=paused,
+        )
+
     # -- Helpers -----------------------------------------------------------
     @staticmethod
     def duplicate_guard(existing: GoogleAdsConnection | None) -> None:

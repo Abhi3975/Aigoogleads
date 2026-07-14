@@ -82,6 +82,11 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     EMAIL_FROM: str = "no-reply@ai-ads-agent.local"
 
+    # --- Safety controls ---
+    # Hard cap on the daily budget any autonomously-created campaign may set,
+    # regardless of what the AI or user requests (defense in depth).
+    SAFETY_MAX_DAILY_BUDGET: float = 1000.0
+
     # --- Observability ---
     SENTRY_DSN: str = ""
 

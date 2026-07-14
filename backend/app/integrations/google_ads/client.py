@@ -20,6 +20,15 @@ def _digits(customer_id: str) -> str:
     return customer_id.replace("-", "").strip()
 
 
+def _step(action: str, resource_type: str, resource_id: str) -> dict[str, str]:
+    return {
+        "action": action,
+        "resource_type": resource_type,
+        "google_resource_id": resource_id,
+        "status": "success",
+    }
+
+
 class GoogleAdsClientWrapper:
     """Wraps a configured google-ads client for a single connection."""
 
@@ -153,6 +162,204 @@ class GoogleAdsClientWrapper:
             client.copy_from(op.update_mask, protobuf_helpers.field_mask(None, budget._pb))
             service.mutate_campaign_budgets(customer_id=cid, operations=[op])
         return {"campaign_id": str(campaign_id), "daily_budget": str(daily_budget)}
+
+    def build_full_campaign(
+        self, *, customer_id: str, structure: dict[str, Any], paused: bool = True
+    ) -> dict[str, Any]:
+        """Create a complete Search campaign from a blueprint structure.
+
+        Creates budget -> campaign -> ad groups -> keywords -> negatives ->
+        responsive search ads. On any failure the partially-created campaign
+        and budget are removed (best-effort rollback) before re-raising.
+        """
+        client = self._build_client()
+        cid = _digits(customer_id)
+        steps: list[dict[str, Any]] = []
+        campaign_rn: str | None = None
+        budget_rn: str | None = None
+
+        try:
+            with self._translate_errors():
+                budget_rn = self._create_budget(
+                    client, cid, structure["campaign_name"], structure["daily_budget"]
+                )
+                steps.append(_step("create_budget", "campaign_budget", budget_rn))
+
+                campaign_rn = self._create_campaign(client, cid, structure, budget_rn, paused)
+                campaign_id = campaign_rn.split("/")[-1]
+                steps.append(_step("create_campaign", "campaign", campaign_rn))
+
+                self._add_campaign_negatives(
+                    client, cid, campaign_rn, structure.get("shared_negative_keywords", []), steps
+                )
+
+                for ad_group in structure.get("ad_groups", []):
+                    self._build_ad_group(client, cid, campaign_rn, ad_group, steps)
+
+            return {
+                "campaign_id": campaign_id,
+                "campaign_resource_name": campaign_rn,
+                "budget_resource_name": budget_rn,
+                "steps": steps,
+            }
+        except Exception:
+            self._rollback(client, cid, campaign_rn, budget_rn)
+            raise
+
+    def _create_budget(self, client: Any, cid: str, name: str, daily_budget: float) -> str:
+        service = client.get_service("CampaignBudgetService")
+        op = client.get_type("CampaignBudgetOperation")
+        budget = op.create
+        budget.name = f"{name} Budget {uuid.uuid4().hex[:8]}"
+        budget.delivery_method = client.enums.BudgetDeliveryMethodEnum.STANDARD
+        budget.amount_micros = round(float(daily_budget) * 1_000_000)
+        budget.explicitly_shared = False
+        resp = service.mutate_campaign_budgets(customer_id=cid, operations=[op])
+        return resp.results[0].resource_name
+
+    def _create_campaign(
+        self, client: Any, cid: str, structure: dict[str, Any], budget_rn: str, paused: bool
+    ) -> str:
+        service = client.get_service("CampaignService")
+        op = client.get_type("CampaignOperation")
+        campaign = op.create
+        campaign.name = structure["campaign_name"]
+        campaign.advertising_channel_type = client.enums.AdvertisingChannelTypeEnum.SEARCH
+        campaign.status = (
+            client.enums.CampaignStatusEnum.PAUSED
+            if paused
+            else client.enums.CampaignStatusEnum.ENABLED
+        )
+        campaign.manual_cpc = client.get_type("ManualCpc")
+        campaign.campaign_budget = budget_rn
+        campaign.network_settings.target_google_search = True
+        campaign.network_settings.target_search_network = True
+        campaign.network_settings.target_content_network = False
+        resp = service.mutate_campaigns(customer_id=cid, operations=[op])
+        return resp.results[0].resource_name
+
+    def _add_campaign_negatives(
+        self, client: Any, cid: str, campaign_rn: str, negatives: list[str], steps: list[dict]
+    ) -> None:
+        if not negatives:
+            return
+        service = client.get_service("CampaignCriterionService")
+        ops = []
+        for text in negatives:
+            op = client.get_type("CampaignCriterionOperation")
+            crit = op.create
+            crit.campaign = campaign_rn
+            crit.negative = True
+            crit.keyword.text = text
+            crit.keyword.match_type = client.enums.KeywordMatchTypeEnum.BROAD
+            ops.append(op)
+        resp = service.mutate_campaign_criteria(customer_id=cid, operations=ops)
+        for result in resp.results:
+            steps.append(_step("add_campaign_negative", "campaign_criterion", result.resource_name))
+
+    def _build_ad_group(
+        self, client: Any, cid: str, campaign_rn: str, ad_group: dict[str, Any], steps: list[dict]
+    ) -> None:
+        ag_service = client.get_service("AdGroupService")
+        ag_op = client.get_type("AdGroupOperation")
+        ag = ag_op.create
+        ag.name = ad_group["name"]
+        ag.campaign = campaign_rn
+        ag.type_ = client.enums.AdGroupTypeEnum.SEARCH_STANDARD
+        ag.cpc_bid_micros = 1_000_000
+        ag_resp = ag_service.mutate_ad_groups(customer_id=cid, operations=[ag_op])
+        ag_rn = ag_resp.results[0].resource_name
+        steps.append(_step("create_ad_group", "ad_group", ag_rn))
+
+        self._add_keywords(client, cid, ag_rn, ad_group.get("keywords", []), steps)
+        self._add_ad_group_negatives(
+            client, cid, ag_rn, ad_group.get("negative_keywords", []), steps
+        )
+        if ad_group.get("ad"):
+            self._create_rsa(client, cid, ag_rn, ad_group["ad"], steps)
+
+    def _add_keywords(
+        self, client: Any, cid: str, ag_rn: str, keywords: list[dict], steps: list[dict]
+    ) -> None:
+        if not keywords:
+            return
+        service = client.get_service("AdGroupCriterionService")
+        ops = []
+        for kw in keywords:
+            op = client.get_type("AdGroupCriterionOperation")
+            crit = op.create
+            crit.ad_group = ag_rn
+            crit.status = client.enums.AdGroupCriterionStatusEnum.ENABLED
+            crit.keyword.text = kw["text"]
+            crit.keyword.match_type = client.enums.KeywordMatchTypeEnum[
+                str(kw.get("match_type", "PHRASE")).upper()
+            ]
+            ops.append(op)
+        resp = service.mutate_ad_group_criteria(customer_id=cid, operations=ops)
+        steps.append(_step("add_keywords", "ad_group_criterion", f"{len(resp.results)} keywords"))
+
+    def _add_ad_group_negatives(
+        self, client: Any, cid: str, ag_rn: str, negatives: list[str], steps: list[dict]
+    ) -> None:
+        if not negatives:
+            return
+        service = client.get_service("AdGroupCriterionService")
+        ops = []
+        for text in negatives:
+            op = client.get_type("AdGroupCriterionOperation")
+            crit = op.create
+            crit.ad_group = ag_rn
+            crit.negative = True
+            crit.keyword.text = text
+            crit.keyword.match_type = client.enums.KeywordMatchTypeEnum.BROAD
+            ops.append(op)
+        resp = service.mutate_ad_group_criteria(customer_id=cid, operations=ops)
+        steps.append(
+            _step("add_negative_keywords", "ad_group_criterion", f"{len(resp.results)} negatives")
+        )
+
+    def _create_rsa(
+        self, client: Any, cid: str, ag_rn: str, ad: dict[str, Any], steps: list[dict]
+    ) -> None:
+        service = client.get_service("AdGroupAdService")
+        op = client.get_type("AdGroupAdOperation")
+        ad_group_ad = op.create
+        ad_group_ad.ad_group = ag_rn
+        ad_group_ad.status = client.enums.AdGroupAdStatusEnum.ENABLED
+        ad_group_ad.ad.final_urls.append(ad["final_url"])
+        for text in ad.get("headlines", []):
+            asset = client.get_type("AdTextAsset")
+            asset.text = text
+            ad_group_ad.ad.responsive_search_ad.headlines.append(asset)
+        for text in ad.get("descriptions", []):
+            asset = client.get_type("AdTextAsset")
+            asset.text = text
+            ad_group_ad.ad.responsive_search_ad.descriptions.append(asset)
+        if ad.get("path1"):
+            ad_group_ad.ad.responsive_search_ad.path1 = ad["path1"]
+        if ad.get("path2"):
+            ad_group_ad.ad.responsive_search_ad.path2 = ad["path2"]
+        resp = service.mutate_ad_group_ads(customer_id=cid, operations=[op])
+        steps.append(_step("create_ad", "ad_group_ad", resp.results[0].resource_name))
+
+    def _rollback(
+        self, client: Any, cid: str, campaign_rn: str | None, budget_rn: str | None
+    ) -> None:
+        try:
+            if campaign_rn:
+                service = client.get_service("CampaignService")
+                op = client.get_type("CampaignOperation")
+                op.remove = campaign_rn
+                service.mutate_campaigns(customer_id=cid, operations=[op])
+            if budget_rn:
+                service = client.get_service("CampaignBudgetService")
+                op = client.get_type("CampaignBudgetOperation")
+                op.remove = budget_rn
+                service.mutate_campaign_budgets(customer_id=cid, operations=[op])
+        except Exception:  # pragma: no cover - best-effort cleanup
+            from app.core.logging import get_logger
+
+            get_logger(__name__).warning("campaign_rollback_failed", campaign=campaign_rn)
 
     # -- Error translation -------------------------------------------------
     def _translate_errors(self) -> Any:

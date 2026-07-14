@@ -7,6 +7,15 @@ so Alembic autogeneration and ``create_all`` see the full schema.
 from app.models.agent import AgentMemory, AgentRun, AgentStep
 from app.models.audit_log import AuditLog
 from app.models.base import Base, SoftDeleteMixin, TimestampMixin, UUIDMixin
+from app.models.campaign import (
+    AudienceProfile,
+    BudgetConfiguration,
+    BusinessProfile,
+    CampaignBlueprint,
+    CampaignExecutionLog,
+    ProductInformation,
+    WebsiteAnalysis,
+)
 from app.models.enums import AuditAction, OrgPlan, OrgRole
 from app.models.google_ads import GoogleAdsAccount, GoogleAdsConnection
 from app.models.organization import Organization, OrganizationMembership
@@ -17,18 +26,25 @@ __all__ = [
     "AgentMemory",
     "AgentRun",
     "AgentStep",
+    "AudienceProfile",
     "AuditAction",
     "AuditLog",
     "Base",
+    "BudgetConfiguration",
+    "BusinessProfile",
+    "CampaignBlueprint",
+    "CampaignExecutionLog",
     "GoogleAdsAccount",
     "GoogleAdsConnection",
     "OrgPlan",
     "OrgRole",
     "Organization",
     "OrganizationMembership",
+    "ProductInformation",
     "RefreshToken",
     "SoftDeleteMixin",
     "TimestampMixin",
     "UUIDMixin",
     "User",
+    "WebsiteAnalysis",
 ]
