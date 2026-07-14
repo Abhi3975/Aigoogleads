@@ -5,6 +5,7 @@ so Alembic autogeneration and ``create_all`` see the full schema.
 """
 
 from app.models.agent import AgentMemory, AgentRun, AgentStep, AIInsight
+from app.models.api_key import APIKey
 from app.models.audit_log import AuditLog
 from app.models.base import Base, SoftDeleteMixin, TimestampMixin, UUIDMixin
 from app.models.campaign import (
@@ -32,6 +33,7 @@ from app.models.user import User
 
 __all__ = [
     "AIInsight",
+    "APIKey",
     "AdMetric",
     "AgentMemory",
     "AgentRun",

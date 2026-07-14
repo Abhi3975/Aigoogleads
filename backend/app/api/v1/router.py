@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends
 from app.api.v1.endpoints import (
     ai,
     analytics,
+    api_keys,
     auth,
     campaigns,
     google_ads,
@@ -37,3 +38,5 @@ api_router.include_router(optimization.router, dependencies=[Depends(ai_rate_lim
 api_router.include_router(notifications.router)
 api_router.include_router(analytics.router)
 api_router.include_router(industry.router)
+api_router.include_router(api_keys.router)
+api_router.include_router(api_keys.key_router)
