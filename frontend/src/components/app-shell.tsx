@@ -8,6 +8,7 @@ import {
   Settings,
   Sparkles,
   TrendingUp,
+  Users,
   Wand2,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -25,6 +26,7 @@ const NAV = [
   { href: '/campaigns', label: 'Campaigns', icon: Megaphone },
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/optimization', label: 'Optimization', icon: TrendingUp },
+  { href: '/team', label: 'Team', icon: Users },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 

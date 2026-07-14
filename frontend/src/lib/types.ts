@@ -33,6 +33,14 @@ export interface Organization {
   role: OrgRole;
 }
 
+export interface OrgMember {
+  user_id: string;
+  email: string;
+  full_name: string | null;
+  role: OrgRole;
+  created_at: string;
+}
+
 export interface GoogleAdsConnection {
   id: string;
   organization_id: string;
