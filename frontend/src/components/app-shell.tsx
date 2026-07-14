@@ -68,9 +68,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         <header className="flex h-16 items-center justify-between border-b px-4 md:px-8">
           <div className="text-sm text-muted-foreground md:hidden">AI Ads Agent</div>
           <div className="ml-auto flex items-center gap-3">
-            <span className="hidden text-sm text-muted-foreground sm:inline">
+            <Link
+              href="/profile"
+              className="hidden text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline"
+            >
               {user?.full_name || user?.email}
-            </span>
+            </Link>
             <NotificationsBell />
             <ThemeToggle />
             <Button variant="ghost" size="icon" aria-label="Log out" onClick={() => void logout()}>
