@@ -1,6 +1,7 @@
 'use client';
 
 import { Bell } from 'lucide-react';
+import Link from 'next/link';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -78,6 +79,13 @@ export function NotificationsBell() {
                 </p>
               )}
             </div>
+            <Link
+              href="/notifications"
+              onClick={() => setOpen(false)}
+              className="block border-t px-4 py-2.5 text-center text-xs text-primary hover:underline"
+            >
+              View all
+            </Link>
           </div>
         </>
       )}

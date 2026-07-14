@@ -6,10 +6,10 @@ import type { AppNotification } from '@/lib/types';
 
 const base = (orgId: string) => `/organizations/${orgId}/notifications`;
 
-export function useNotifications(orgId: string | undefined) {
+export function useNotifications(orgId: string | undefined, unreadOnly = false) {
   return useQuery({
-    queryKey: ['notifications', orgId],
-    queryFn: () => api.get<AppNotification[]>(base(orgId!)),
+    queryKey: ['notifications', orgId, unreadOnly],
+    queryFn: () => api.get<AppNotification[]>(`${base(orgId!)}${unreadOnly ? '?unread=true' : ''}`),
     enabled: !!orgId,
     refetchInterval: 60_000,
   });
@@ -24,13 +24,23 @@ export function useUnreadCount(orgId: string | undefined) {
   });
 }
 
+function invalidate(qc: ReturnType<typeof useQueryClient>, orgId: string) {
+  qc.invalidateQueries({ queryKey: ['notifications', orgId] });
+  qc.invalidateQueries({ queryKey: ['notifications-unread', orgId] });
+}
+
+export function useMarkRead(orgId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.post(`${base(orgId)}/${id}/read`, {}),
+    onSuccess: () => invalidate(qc, orgId),
+  });
+}
+
 export function useMarkAllRead(orgId: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => api.post(`${base(orgId)}/read-all`, {}),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['notifications', orgId] });
-      qc.invalidateQueries({ queryKey: ['notifications-unread', orgId] });
-    },
+    onSuccess: () => invalidate(qc, orgId),
   });
 }
