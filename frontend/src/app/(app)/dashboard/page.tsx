@@ -13,6 +13,8 @@ import {
   Wand2,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -60,6 +62,19 @@ export default function DashboardPage() {
   const isConnected = !!connection.data && connection.data.status === 'active';
   const totals = analytics.data?.totals;
   const hasPerformance = !!totals && totals.cost > 0;
+
+  // Brand-new accounts (no profile, no campaigns) start at the onboarding wizard.
+  const router = useRouter();
+  useEffect(() => {
+    if (
+      !onboarding.isLoading &&
+      onboarding.data === null &&
+      !blueprints.isLoading &&
+      (blueprints.data?.length ?? 0) === 0
+    ) {
+      router.replace('/onboarding');
+    }
+  }, [onboarding.isLoading, onboarding.data, blueprints.isLoading, blueprints.data, router]);
 
   if (orgLoading) {
     return (
