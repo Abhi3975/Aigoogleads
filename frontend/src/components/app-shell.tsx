@@ -3,6 +3,7 @@
 import {
   BarChart3,
   Brain,
+  CreditCard,
   FileText,
   LayoutDashboard,
   LogOut,
@@ -31,6 +32,7 @@ const NAV = [
   { href: '/optimization', label: 'Optimization', icon: TrendingUp },
   { href: '/insights', label: 'AI Brain', icon: Brain },
   { href: '/team', label: 'Team', icon: Users },
+  { href: '/billing', label: 'Billing', icon: CreditCard },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 

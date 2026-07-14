@@ -188,6 +188,17 @@ export interface ExecutionLog {
   created_at: string;
 }
 
+export interface BillingStatus {
+  plan: string;
+  limits: Record<string, number>;
+  usage: Record<string, number>;
+}
+
+export interface PlanInfo {
+  plan: string;
+  limits: Record<string, number>;
+}
+
 export interface OptimizationPolicy {
   enabled: boolean;
   auto_execute: boolean;
