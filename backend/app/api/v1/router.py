@@ -15,6 +15,7 @@ from app.api.v1.endpoints import (
     campaigns,
     google_ads,
     health,
+    industry,
     notifications,
     optimization,
     organizations,
@@ -35,3 +36,4 @@ api_router.include_router(campaigns.router, dependencies=[Depends(ai_rate_limit)
 api_router.include_router(optimization.router, dependencies=[Depends(ai_rate_limit)])
 api_router.include_router(notifications.router)
 api_router.include_router(analytics.router)
+api_router.include_router(industry.router)

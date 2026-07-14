@@ -29,14 +29,20 @@ async def _seed(db_engine: AsyncEngine, org_id: str) -> None:
     async with factory() as session:
         svc = AIInsightService(session)
         await svc.record(
-            organization_id=uuid.UUID(org_id), agent_name="optimization_engine",
-            insight_type="optimization", observation="low importance learning",
-            importance_score=0.2, confidence=0.5,
+            organization_id=uuid.UUID(org_id),
+            agent_name="optimization_engine",
+            insight_type="optimization",
+            observation="low importance learning",
+            importance_score=0.2,
+            confidence=0.5,
         )
         await svc.record(
-            organization_id=uuid.UUID(org_id), agent_name="performance_analyzer",
-            insight_type="performance", observation="high importance learning",
-            importance_score=0.9, confidence=0.8,
+            organization_id=uuid.UUID(org_id),
+            agent_name="performance_analyzer",
+            insight_type="performance",
+            observation="high importance learning",
+            importance_score=0.9,
+            confidence=0.8,
         )
         await session.commit()
 
@@ -81,8 +87,12 @@ async def test_importance_clamped(client: AsyncClient, db_engine: AsyncEngine) -
     factory = async_sessionmaker(db_engine, expire_on_commit=False)
     async with factory() as session:
         insight = await AIInsightService(session).record(
-            organization_id=uuid.UUID(org_id), agent_name="x", insight_type="t",
-            observation="o", importance_score=5.0, confidence=-1.0,
+            organization_id=uuid.UUID(org_id),
+            agent_name="x",
+            insight_type="t",
+            observation="o",
+            importance_score=5.0,
+            confidence=-1.0,
         )
         await session.commit()
     assert float(insight.importance_score) == 1.0
