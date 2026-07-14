@@ -56,6 +56,7 @@ make frontend-install && make frontend-run    # Next.js on :3000
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — design & per-milestone plan
 - [`docs/GOOGLE_ADS.md`](docs/GOOGLE_ADS.md) — Google Ads integration & verification
 - [`docs/CAMPAIGN_CREATION.md`](docs/CAMPAIGN_CREATION.md) — autonomous campaign creation flow
+- [`docs/OPTIMIZATION.md`](docs/OPTIMIZATION.md) — autonomous optimization engine (Celery + safety)
 
 ## Development conventions
 

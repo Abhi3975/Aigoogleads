@@ -97,7 +97,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101"]
+"tests/*" = ["S101", "C408"]  # asserts and dict() literals are fine in tests
 # Settings expose DSNs as UPPERCASE computed properties (read like constants).
 "app/core/config.py" = ["N802"]
 

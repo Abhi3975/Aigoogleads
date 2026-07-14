@@ -18,11 +18,20 @@ from app.models.campaign import (
 )
 from app.models.enums import AuditAction, OrgPlan, OrgRole
 from app.models.google_ads import GoogleAdsAccount, GoogleAdsConnection
+from app.models.metrics import (
+    AdMetric,
+    CampaignMetric,
+    DailyPerformanceReport,
+    KeywordMetric,
+)
+from app.models.notification import Notification
+from app.models.optimization import OptimizationLog, OptimizationPolicy
 from app.models.organization import Organization, OrganizationMembership
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
 
 __all__ = [
+    "AdMetric",
     "AgentMemory",
     "AgentRun",
     "AgentStep",
@@ -34,8 +43,14 @@ __all__ = [
     "BusinessProfile",
     "CampaignBlueprint",
     "CampaignExecutionLog",
+    "CampaignMetric",
+    "DailyPerformanceReport",
     "GoogleAdsAccount",
     "GoogleAdsConnection",
+    "KeywordMetric",
+    "Notification",
+    "OptimizationLog",
+    "OptimizationPolicy",
     "OrgPlan",
     "OrgRole",
     "Organization",

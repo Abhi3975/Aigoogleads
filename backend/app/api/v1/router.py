@@ -14,6 +14,8 @@ from app.api.v1.endpoints import (
     campaigns,
     google_ads,
     health,
+    notifications,
+    optimization,
     organizations,
     users,
 )
@@ -27,3 +29,5 @@ api_router.include_router(google_ads.router)
 api_router.include_router(google_ads.callback_router)
 api_router.include_router(ai.router)
 api_router.include_router(campaigns.router)
+api_router.include_router(optimization.router)
+api_router.include_router(notifications.router)
