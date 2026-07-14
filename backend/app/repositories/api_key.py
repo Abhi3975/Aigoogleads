@@ -24,9 +24,7 @@ class APIKeyRepository(BaseRepository[APIKey]):
         )
         return list((await self.session.execute(stmt)).scalars().all())
 
-    async def get_for_org(
-        self, key_id: uuid.UUID, organization_id: uuid.UUID
-    ) -> APIKey | None:
+    async def get_for_org(self, key_id: uuid.UUID, organization_id: uuid.UUID) -> APIKey | None:
         return await self.get_by(id=key_id, organization_id=organization_id)
 
     async def get_active_by_hash(self, key_hash: str) -> APIKey | None:

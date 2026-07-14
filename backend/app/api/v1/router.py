@@ -13,6 +13,7 @@ from app.api.v1.endpoints import (
     analytics,
     api_keys,
     auth,
+    billing,
     campaigns,
     google_ads,
     health,
@@ -40,3 +41,4 @@ api_router.include_router(analytics.router)
 api_router.include_router(industry.router)
 api_router.include_router(api_keys.router)
 api_router.include_router(api_keys.key_router)
+api_router.include_router(billing.router)

@@ -29,6 +29,7 @@ from app.models.notification import Notification
 from app.models.optimization import OptimizationLog, OptimizationPolicy
 from app.models.organization import Organization, OrganizationMembership
 from app.models.refresh_token import RefreshToken
+from app.models.usage import UsageRecord
 from app.models.user import User
 
 __all__ = [
@@ -63,6 +64,7 @@ __all__ = [
     "SoftDeleteMixin",
     "TimestampMixin",
     "UUIDMixin",
+    "UsageRecord",
     "User",
     "WebsiteAnalysis",
 ]

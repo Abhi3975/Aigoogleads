@@ -68,9 +68,7 @@ async def test_revoked_key_rejected(client: AsyncClient) -> None:
     raw = created.json()["key"]
     key_id = created.json()["id"]
 
-    revoke = await client.delete(
-        f"{API}/organizations/{org_id}/api-keys/{key_id}", headers=headers
-    )
+    revoke = await client.delete(f"{API}/organizations/{org_id}/api-keys/{key_id}", headers=headers)
     assert revoke.status_code == 204
 
     who = await client.get(f"{API}/api-keys/whoami", headers={"X-API-Key": raw})

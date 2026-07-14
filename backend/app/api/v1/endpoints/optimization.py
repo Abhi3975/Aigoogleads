@@ -14,6 +14,7 @@ from app.api.deps import (
     RequestMetadata,
     require_role,
 )
+from app.api.quota import consume_ai_quota
 from app.models.enums import OrgRole
 from app.models.organization import OrganizationMembership
 from app.repositories.optimization import (
@@ -72,7 +73,12 @@ async def list_logs(
     return [OptimizationLogOut.model_validate(log) for log in logs]
 
 
-@router.post("/run", response_model=OptimizationRunSummary, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/run",
+    response_model=OptimizationRunSummary,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(consume_ai_quota)],
+)
 async def run_optimization(
     organization_id: uuid.UUID,
     body: OptimizationRunRequest,

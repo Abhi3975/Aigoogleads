@@ -14,6 +14,7 @@ from app.api.deps import (
     RequestMetadata,
     require_role,
 )
+from app.api.quota import consume_ai_quota
 from app.core.exceptions import NotFoundError
 from app.models.enums import OrgRole
 from app.models.organization import OrganizationMembership
@@ -58,7 +59,12 @@ async def get_onboarding(
 
 
 # --------------------------------------------------------------------- planning
-@router.post("/plan", response_model=CampaignPlanResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/plan",
+    response_model=CampaignPlanResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(consume_ai_quota)],
+)
 async def plan_campaign(
     organization_id: uuid.UUID,
     body: PlanRequest,

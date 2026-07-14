@@ -14,6 +14,7 @@ from app.api.deps import (
     RequestMetadata,
     require_role,
 )
+from app.api.quota import consume_ai_quota
 from app.core.exceptions import ForbiddenError, NotFoundError
 from app.models.enums import OrgRole, role_rank
 from app.models.organization import OrganizationMembership
@@ -30,7 +31,12 @@ from app.services.ai_insights import AIInsightService
 router = APIRouter(prefix="/organizations/{organization_id}/ai", tags=["ai-agents"])
 
 
-@router.post("/plan", response_model=AgentRunDetailOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/plan",
+    response_model=AgentRunDetailOut,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(consume_ai_quota)],
+)
 async def run_campaign_plan(
     organization_id: uuid.UUID,
     business: BusinessContext,
@@ -47,7 +53,12 @@ async def run_campaign_plan(
     return AgentRunDetailOut.model_validate(run)
 
 
-@router.post("/optimize", response_model=AgentRunDetailOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/optimize",
+    response_model=AgentRunDetailOut,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(consume_ai_quota)],
+)
 async def run_optimization(
     organization_id: uuid.UUID,
     body: OptimizeRequest,

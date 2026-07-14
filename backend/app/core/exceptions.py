@@ -79,6 +79,12 @@ class RateLimitError(AppError):
     message = "Too many requests. Please slow down."
 
 
+class LimitExceededError(AppError):
+    status_code = status.HTTP_402_PAYMENT_REQUIRED
+    error_code = "plan_limit_exceeded"
+    message = "Your plan's usage limit has been reached. Upgrade to continue."
+
+
 def _error_body(error_code: str, message: str, details: Any | None = None) -> dict[str, Any]:
     body: dict[str, Any] = {"error": {"code": error_code, "message": message}}
     if details is not None:
