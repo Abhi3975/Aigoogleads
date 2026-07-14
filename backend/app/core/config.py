@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     ENVIRONMENT: Environment = "local"
     DEBUG: bool = False
     API_V1_PREFIX: str = "/api/v1"
+    # Where the browser is sent back to after OAuth (SPA callback route).
+    FRONTEND_BASE_URL: str = "http://localhost:3000"
 
     # --- Server / logging ---
     LOG_LEVEL: str = "INFO"

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Cookie, Query, Response, status
+from fastapi.responses import RedirectResponse
 
 from app.api.deps import CurrentUser, DbSession, RequestMetadata
 from app.core.config import settings
@@ -10,7 +11,6 @@ from app.core.exceptions import UnauthorizedError, ValidationError
 from app.integrations.google_oauth import GoogleOAuthClient
 from app.schemas.auth import (
     AuthResponse,
-    GoogleAuthURL,
     LoginRequest,
     RefreshRequest,
     RegisterRequest,
@@ -111,9 +111,9 @@ async def me(current_user: CurrentUser) -> UserOut:
 # --------------------------------------------------------------------------
 # Google passwordless sign-in
 # --------------------------------------------------------------------------
-@router.get("/google/login", response_model=GoogleAuthURL)
-async def google_login(response: Response) -> GoogleAuthURL:
-    """Return the Google authorization URL and set a CSRF state cookie."""
+@router.get("/google/login")
+async def google_login() -> RedirectResponse:
+    """Redirect the browser to Google's consent screen (sets a CSRF state cookie)."""
     client = GoogleOAuthClient()
     if not client.is_configured:
         raise ValidationError("Google sign-in is not configured on this server.")
@@ -121,8 +121,8 @@ async def google_login(response: Response) -> GoogleAuthURL:
     from app.core.security import generate_state_token
 
     state = generate_state_token()
-    url = client.build_authorization_url(state=state)
-    response.set_cookie(
+    redirect = RedirectResponse(url=client.build_authorization_url(state=state), status_code=307)
+    redirect.set_cookie(
         OAUTH_STATE_COOKIE,
         state,
         max_age=600,
@@ -131,19 +131,19 @@ async def google_login(response: Response) -> GoogleAuthURL:
         samesite="lax",
         path=_COOKIE_PATH,
     )
-    return GoogleAuthURL(authorization_url=url, state=state)
+    return redirect
 
 
-@router.get("/google/callback", response_model=AuthResponse)
+@router.get("/google/callback")
 async def google_callback(
     session: DbSession,
     meta: RequestMetadata,
-    response: Response,
     code: str = Query(...),
     state: str = Query(...),
     state_cookie: str | None = Cookie(default=None, alias=OAUTH_STATE_COOKIE),
-) -> AuthResponse:
-    """Handle Google's redirect: verify state, exchange code, sign the user in."""
+) -> RedirectResponse:
+    """Handle Google's redirect: verify state, sign in, and return the browser to
+    the SPA callback with tokens in the URL fragment (never sent to servers)."""
     if not state_cookie or state_cookie != state:
         raise UnauthorizedError("Invalid OAuth state.", error_code="invalid_oauth_state")
 
@@ -154,7 +154,12 @@ async def google_callback(
         raise UnauthorizedError("Google did not return an access token.")
     userinfo = await client.fetch_userinfo(access_token)
 
-    user, tokens = await AuthService(session).authenticate_google(userinfo=userinfo, meta=meta)
-    response.delete_cookie(OAUTH_STATE_COOKIE, path=_COOKIE_PATH)
-    _set_refresh_cookie(response, tokens.refresh_token)
-    return AuthResponse(user=UserOut.model_validate(user), tokens=tokens)
+    _user, tokens = await AuthService(session).authenticate_google(userinfo=userinfo, meta=meta)
+    target = (
+        f"{settings.FRONTEND_BASE_URL}/auth/callback"
+        f"#access_token={tokens.access_token}&refresh_token={tokens.refresh_token}"
+    )
+    redirect = RedirectResponse(url=target, status_code=307)
+    redirect.delete_cookie(OAUTH_STATE_COOKIE, path=_COOKIE_PATH)
+    _set_refresh_cookie(redirect, tokens.refresh_token)
+    return redirect
