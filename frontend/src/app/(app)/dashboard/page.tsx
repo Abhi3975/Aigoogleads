@@ -147,9 +147,10 @@ export default function DashboardPage() {
               Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-12" />)
             ) : runs.data && runs.data.length > 0 ? (
               runs.data.slice(0, 6).map((run) => (
-                <div
+                <Link
                   key={run.id}
-                  className="flex items-center justify-between rounded-md border px-4 py-3"
+                  href={`/runs/${run.id}`}
+                  className="flex items-center justify-between rounded-md border px-4 py-3 transition-colors hover:bg-accent"
                 >
                   <div>
                     <p className="text-sm font-medium capitalize">
@@ -170,7 +171,7 @@ export default function DashboardPage() {
                   >
                     {run.status}
                   </Badge>
-                </div>
+                </Link>
               ))
             ) : (
               <div className="flex flex-col items-center gap-2 py-10 text-center text-muted-foreground">

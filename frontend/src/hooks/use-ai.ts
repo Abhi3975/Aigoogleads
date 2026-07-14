@@ -11,3 +11,11 @@ export function useAiRuns(orgId: string | undefined) {
     enabled: !!orgId,
   });
 }
+
+export function useAiRun(orgId: string | undefined, runId: string | undefined) {
+  return useQuery({
+    queryKey: ['ai-run', orgId, runId],
+    queryFn: () => api.get<AgentRun>(`/organizations/${orgId}/ai/runs/${runId}`),
+    enabled: !!orgId && !!runId,
+  });
+}
