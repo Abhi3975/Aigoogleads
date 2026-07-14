@@ -1,6 +1,6 @@
 'use client';
 
-import { Plug, RefreshCw } from 'lucide-react';
+import { Plug, RefreshCw, Unplug } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import {
   useAccounts,
   useConnectGoogleAds,
   useConnection,
+  useDisconnectGoogleAds,
   useSyncAccounts,
 } from '@/hooks/use-google-ads';
 import { useCurrentOrg } from '@/hooks/use-organizations';
@@ -23,6 +24,7 @@ export default function SettingsPage() {
   const accounts = useAccounts(orgId);
   const connect = useConnectGoogleAds(orgId ?? '');
   const sync = useSyncAccounts(orgId ?? '');
+  const disconnect = useDisconnectGoogleAds(orgId ?? '');
 
   const isConnected = !!connection.data && connection.data.status === 'active';
 
@@ -41,6 +43,18 @@ export default function SettingsPage() {
       toast.success('Accounts synced');
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : 'Sync failed');
+    }
+  }
+
+  async function onDisconnect() {
+    if (!window.confirm('Disconnect Google Ads? The AI will no longer manage your campaigns.')) {
+      return;
+    }
+    try {
+      await disconnect.mutateAsync();
+      toast.success('Google Ads disconnected');
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Could not disconnect');
     }
   }
 
@@ -78,10 +92,29 @@ export default function SettingsPage() {
               {isConnected ? 'Reconnect' : 'Connect Google Ads'}
             </Button>
             {isConnected && (
-              <Button variant="outline" onClick={() => void onSync()} disabled={sync.isPending}>
-                {sync.isPending ? <Spinner className="size-4" /> : <RefreshCw className="size-4" />}
-                Sync accounts
-              </Button>
+              <>
+                <Button variant="outline" onClick={() => void onSync()} disabled={sync.isPending}>
+                  {sync.isPending ? (
+                    <Spinner className="size-4" />
+                  ) : (
+                    <RefreshCw className="size-4" />
+                  )}
+                  Sync accounts
+                </Button>
+                <Button
+                  variant="outline"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => void onDisconnect()}
+                  disabled={disconnect.isPending}
+                >
+                  {disconnect.isPending ? (
+                    <Spinner className="size-4" />
+                  ) : (
+                    <Unplug className="size-4" />
+                  )}
+                  Disconnect
+                </Button>
+              </>
             )}
           </div>
 

@@ -36,3 +36,14 @@ export function useSyncAccounts(orgId: string) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['ga-accounts', orgId] }),
   });
 }
+
+export function useDisconnectGoogleAds(orgId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.del<void>(`${base(orgId)}/connection`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['ga-connection', orgId] });
+      qc.invalidateQueries({ queryKey: ['ga-accounts', orgId] });
+    },
+  });
+}
