@@ -103,3 +103,25 @@ class CampaignMetricRepository(BaseRepository[CampaignMetric]):
 class DailyPerformanceReportRepository(BaseRepository[DailyPerformanceReport]):
     def __init__(self, session: AsyncSession) -> None:
         super().__init__(DailyPerformanceReport, session)
+
+    async def list_for_org(
+        self, organization_id: uuid.UUID, *, offset: int = 0, limit: int = 50
+    ) -> list[DailyPerformanceReport]:
+        stmt = (
+            select(DailyPerformanceReport)
+            .where(DailyPerformanceReport.organization_id == organization_id)
+            .order_by(DailyPerformanceReport.date.desc(), DailyPerformanceReport.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+        return list((await self.session.execute(stmt)).scalars().all())
+
+    async def get_for_day(
+        self, organization_id: uuid.UUID, customer_id: str, day: date
+    ) -> DailyPerformanceReport | None:
+        stmt = select(DailyPerformanceReport).where(
+            DailyPerformanceReport.organization_id == organization_id,
+            DailyPerformanceReport.customer_id == customer_id,
+            DailyPerformanceReport.date == day,
+        )
+        return (await self.session.execute(stmt)).scalars().first()

@@ -268,6 +268,15 @@ export interface AnalyticsTimeseries {
   points: TimeseriesPoint[];
 }
 
+export interface DailyReport {
+  id: string;
+  customer_id: string;
+  date: string;
+  summary: string;
+  totals: Record<string, number>;
+  created_at: string;
+}
+
 export interface AppNotification {
   id: string;
   type: string;

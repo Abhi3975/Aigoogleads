@@ -21,6 +21,7 @@ from app.api.v1.endpoints import (
     notifications,
     optimization,
     organizations,
+    reports,
     users,
 )
 from app.core.rate_limit import ai_rate_limit, auth_rate_limit
@@ -42,3 +43,4 @@ api_router.include_router(industry.router)
 api_router.include_router(api_keys.router)
 api_router.include_router(api_keys.key_router)
 api_router.include_router(billing.router)
+api_router.include_router(reports.router)

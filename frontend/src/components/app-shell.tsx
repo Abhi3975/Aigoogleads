@@ -2,6 +2,7 @@
 
 import {
   BarChart3,
+  FileText,
   LayoutDashboard,
   LogOut,
   Megaphone,
@@ -25,6 +26,7 @@ const NAV = [
   { href: '/onboarding', label: 'Onboarding', icon: Wand2 },
   { href: '/campaigns', label: 'Campaigns', icon: Megaphone },
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/reports', label: 'Reports', icon: FileText },
   { href: '/optimization', label: 'Optimization', icon: TrendingUp },
   { href: '/team', label: 'Team', icon: Users },
   { href: '/settings', label: 'Settings', icon: Settings },
