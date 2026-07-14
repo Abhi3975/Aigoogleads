@@ -67,25 +67,28 @@ api (routers)  →  services (business logic)  →  repositories (data access)  
 | AI provider | OpenAI-compatible abstraction | Swap providers without touching agent logic |
 | Dep mgmt | `uv` (backend) · `pnpm` (frontend) | Fast, reproducible, lockfile-based |
 
-## Build milestones
+## Build milestones (all delivered)
 
-1. **M1 — Foundation & scaffolding** *(this milestone)*: monorepo, Docker, env,
-   linting/formatting, dependency management, runnable FastAPI health service,
-   Next.js foundation.
-2. **M2 — Database & core models**: PostgreSQL schema, SQLAlchemy models,
-   Alembic migrations, repository base, soft deletes, indexes.
-3. **M3 — Auth & RBAC**: Google OAuth, JWT + refresh rotation, organizations,
-   team members, RBAC, encrypted token storage, rate limiting.
-4. **M4 — Google Ads integration**: API client, campaign/ad-group/keyword/RSA
-   CRUD, budget/bid updates, reporting, search terms.
-5. **M5 — AI multi-agent system**: 9 specialized agents + Supervisor, structured
-   outputs, tool calling, memory, reasoning/execution logs.
-6. **M6 — Background jobs & optimization loop**: Celery tasks, scheduled
-   optimization, email reports, notifications.
-7. **M7 — Frontend application**: dashboards, campaigns, keywords, AI
-   recommendations, optimization history, audit logs, settings.
-8. **M8 — DevOps, docs & tests**: production Dockerfiles, Nginx, GitHub Actions,
-   monitoring hooks, complete documentation, test suites.
+1. ✅ **M1 — Foundation & scaffolding**: monorepo, Docker, env, lint/format,
+   dependency management, FastAPI health service, Next.js foundation.
+2. ✅ **M2 — Database & core models**: schema, async SQLAlchemy models, Alembic,
+   repository base, soft deletes, indexes.
+3. ✅ **M3 — Auth & RBAC**: Google OAuth, JWT + refresh rotation, organizations,
+   team members, 5-role RBAC, encrypted token storage.
+4. ✅ **M4 — Google Ads integration**: API client, campaign/keyword/RSA CRUD,
+   budget/status mutations, metrics, connection lifecycle.
+5. ✅ **M5 — AI multi-agent system**: 9 specialized agents + Supervisor,
+   structured outputs, tool calling, memory, reasoning/execution logs.
+6. ✅ **M6 — Autonomous campaign creation** + **M6b optimization engine**: full
+   onboarding→execution flow; Celery/Beat loop with the Safety Decision Engine.
+7. ✅ **M7 — Frontend application**: 21 routes — dashboards, wizard, campaigns,
+   analytics, reports, optimization, AI insights, run logs, team, billing,
+   settings, profile.
+8. ✅ **M8 — DevOps, security & docs**: rate limiting, security headers,
+   request-id logging, `/health` + `/ready`, GitHub Actions CI + security scans,
+   Docker + Kubernetes, docs.
+9. ✅ **M9–M11 — SaaS layer**: AI learning insights, usage metering + plan
+   limits, API keys, industry templates.
 
 ## Security posture (summary)
 
