@@ -1,9 +1,18 @@
 'use client';
 
-import { LayoutDashboard, LogOut, Megaphone, Settings, Sparkles, Wand2 } from 'lucide-react';
+import {
+  LayoutDashboard,
+  LogOut,
+  Megaphone,
+  Settings,
+  Sparkles,
+  TrendingUp,
+  Wand2,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { NotificationsBell } from '@/components/notifications-bell';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/providers/auth-provider';
@@ -13,6 +22,7 @@ const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/onboarding', label: 'Onboarding', icon: Wand2 },
   { href: '/campaigns', label: 'Campaigns', icon: Megaphone },
+  { href: '/optimization', label: 'Optimization', icon: TrendingUp },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -57,6 +67,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="hidden text-sm text-muted-foreground sm:inline">
               {user?.full_name || user?.email}
             </span>
+            <NotificationsBell />
             <ThemeToggle />
             <Button variant="ghost" size="icon" aria-label="Log out" onClick={() => void logout()}>
               <LogOut />

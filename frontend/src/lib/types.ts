@@ -179,3 +179,52 @@ export interface ExecutionLog {
   error: string | null;
   created_at: string;
 }
+
+export interface OptimizationPolicy {
+  enabled: boolean;
+  auto_execute: boolean;
+  max_budget_increase_pct: number;
+  max_budget_decrease_pct: number;
+  max_bid_change_pct: number;
+  min_days_active: number;
+  min_clicks_required: number;
+  min_keyword_clicks: number;
+  min_keyword_days: number;
+  min_confidence: number;
+  date_range: string;
+}
+
+export interface OptimizationLog {
+  id: string;
+  customer_id: string | null;
+  campaign_id: string | null;
+  action_type: string;
+  target: string | null;
+  previous_value: number | null;
+  new_value: number | null;
+  reasoning: string | null;
+  explanation: string | null;
+  confidence: number;
+  status: string;
+  created_at: string;
+}
+
+export interface OptimizationRunSummary {
+  run_id: string;
+  applied: number;
+  pending: number;
+  rejected: number;
+  failed: number;
+  logs: OptimizationLog[];
+}
+
+export interface AppNotification {
+  id: string;
+  type: string;
+  severity: string;
+  title: string;
+  body: string;
+  data: Record<string, unknown>;
+  is_read: boolean;
+  created_at: string;
+}
