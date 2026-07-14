@@ -218,6 +218,48 @@ export interface OptimizationRunSummary {
   logs: OptimizationLog[];
 }
 
+export interface KpiTotals {
+  impressions: number;
+  clicks: number;
+  cost: number;
+  conversions: number;
+  conversions_value: number;
+  ctr: number;
+  average_cpc: number;
+  cpa: number;
+  roas: number;
+  conversion_rate: number;
+}
+
+export interface CampaignPerformance {
+  campaign_id: string;
+  campaign_name: string | null;
+  cost: number;
+  clicks: number;
+  conversions: number;
+  ctr: number;
+  cpa: number;
+  roas: number;
+}
+
+export interface AnalyticsSummary {
+  as_of: string | null;
+  totals: KpiTotals;
+  campaigns: CampaignPerformance[];
+}
+
+export interface TimeseriesPoint {
+  date: string;
+  cost: number;
+  clicks: number;
+  conversions: number;
+  conversions_value: number;
+}
+
+export interface AnalyticsTimeseries {
+  points: TimeseriesPoint[];
+}
+
 export interface AppNotification {
   id: string;
   type: string;

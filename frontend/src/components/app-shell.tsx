@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  BarChart3,
   LayoutDashboard,
   LogOut,
   Megaphone,
@@ -22,6 +23,7 @@ const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/onboarding', label: 'Onboarding', icon: Wand2 },
   { href: '/campaigns', label: 'Campaigns', icon: Megaphone },
+  { href: '/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/optimization', label: 'Optimization', icon: TrendingUp },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
