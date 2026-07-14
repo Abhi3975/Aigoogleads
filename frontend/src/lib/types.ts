@@ -1,0 +1,181 @@
+/** API types mirroring the backend Pydantic schemas. */
+
+export interface User {
+  id: string;
+  email: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  is_active: boolean;
+  is_email_verified: boolean;
+  created_at: string;
+}
+
+export interface TokenPair {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  expires_in: number;
+}
+
+export interface AuthResponse {
+  user: User;
+  tokens: TokenPair;
+}
+
+export type OrgRole = 'owner' | 'admin' | 'manager' | 'analyst' | 'viewer';
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  plan: string;
+  created_at: string;
+  role: OrgRole;
+}
+
+export interface GoogleAdsConnection {
+  id: string;
+  organization_id: string;
+  status: string;
+  login_customer_id: string | null;
+  last_synced_at: string | null;
+  accounts_count: number;
+}
+
+export interface GoogleAdsAccount {
+  customer_id: string;
+  descriptive_name: string | null;
+  currency_code: string | null;
+  time_zone: string | null;
+  is_manager: boolean;
+  is_test_account: boolean;
+}
+
+export type MarketingGoal =
+  | 'generate_leads'
+  | 'increase_sales'
+  | 'website_traffic'
+  | 'app_installs'
+  | 'brand_awareness'
+  | 'local_store_visits';
+
+export interface OnboardingPayload {
+  business_name: string;
+  description: string;
+  industry: string;
+  website_url?: string | null;
+  product_service_description?: string | null;
+  usp?: string | null;
+  location?: string | null;
+  target_countries: string[];
+  target_cities: string[];
+  languages: string[];
+  goal: MarketingGoal;
+  budget: {
+    daily_budget: number;
+    monthly_budget: number;
+    currency: string;
+    max_cpa?: number | null;
+    target_roas?: number | null;
+  };
+  audience?: {
+    age_min?: number | null;
+    age_max?: number | null;
+    gender?: string | null;
+    locations: string[];
+    interests: string[];
+    pain_points: string[];
+    existing_customer_profile?: string | null;
+  } | null;
+  products: {
+    name: string;
+    pricing?: string | null;
+    features: string[];
+    benefits: string[];
+    landing_url?: string | null;
+  }[];
+}
+
+export interface BusinessProfile extends OnboardingPayload {
+  id: string;
+  status: string;
+  created_at: string;
+}
+
+export interface AgentStep {
+  id: string;
+  sequence: number;
+  agent_name: string;
+  status: string;
+  reasoning: string | null;
+  output: Record<string, unknown> | null;
+  tool_calls: unknown[];
+  usage: Record<string, number>;
+  created_at: string;
+}
+
+export interface AgentRun {
+  id: string;
+  workflow: string;
+  status: string;
+  input: Record<string, unknown>;
+  output: Record<string, unknown> | null;
+  error: string | null;
+  total_tokens: number;
+  created_at: string;
+  steps?: AgentStep[];
+}
+
+export interface CampaignBlueprint {
+  id: string;
+  campaign_name: string;
+  campaign_type: string;
+  objective: string;
+  daily_budget: number;
+  bidding_strategy: string;
+  status: string;
+  customer_id: string | null;
+  google_campaign_id: string | null;
+  structure: BlueprintStructure;
+  created_at: string;
+}
+
+export interface BlueprintStructure {
+  campaign_name: string;
+  campaign_type: string;
+  objective: string;
+  daily_budget: number;
+  bidding_strategy: string;
+  location_targeting: string[];
+  audience_targeting: string;
+  ad_groups: {
+    name: string;
+    theme: string;
+    keywords: { text: string; match_type: string; intent: string }[];
+    negative_keywords: string[];
+    ad: {
+      headlines: string[];
+      descriptions: string[];
+      final_url: string;
+    } | null;
+  }[];
+  shared_negative_keywords: string[];
+  extensions: { sitelinks: { text: string; url?: string }[]; callouts: string[] };
+  validation_warnings: string[];
+}
+
+export interface CampaignPlanResponse {
+  run: AgentRun;
+  blueprint: CampaignBlueprint;
+}
+
+export interface ExecutionLog {
+  id: string;
+  sequence: number;
+  action: string;
+  resource_type: string | null;
+  google_resource_id: string | null;
+  status: string;
+  error: string | null;
+  created_at: string;
+}
