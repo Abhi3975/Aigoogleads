@@ -1,16 +1,29 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Activity, CheckCircle2, Megaphone, Plug, Wand2 } from 'lucide-react';
+import {
+  Activity,
+  CheckCircle2,
+  DollarSign,
+  Megaphone,
+  MousePointerClick,
+  Plug,
+  Target,
+  TrendingUp,
+  Wand2,
+} from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAiRuns } from '@/hooks/use-ai';
+import { useAnalyticsSummary } from '@/hooks/use-analytics';
 import { useBlueprints, useOnboarding } from '@/hooks/use-campaigns';
 import { useConnection } from '@/hooks/use-google-ads';
 import { useCurrentOrg } from '@/hooks/use-organizations';
+
+const money = (n: number) => `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 
 function StatCard({
   label,
@@ -41,9 +54,12 @@ export default function DashboardPage() {
   const blueprints = useBlueprints(orgId);
   const runs = useAiRuns(orgId);
   const connection = useConnection(orgId);
+  const analytics = useAnalyticsSummary(orgId);
 
   const created = blueprints.data?.filter((b) => b.status === 'created').length ?? 0;
   const isConnected = !!connection.data && connection.data.status === 'active';
+  const totals = analytics.data?.totals;
+  const hasPerformance = !!totals && totals.cost > 0;
 
   if (orgLoading) {
     return (
@@ -94,6 +110,31 @@ export default function DashboardPage() {
         />
         <StatCard label="Google Ads" value={isConnected ? 'Connected' : 'Not linked'} icon={Plug} />
       </div>
+
+      {hasPerformance && (
+        <div>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-medium text-muted-foreground">Performance</h2>
+            <Link href="/analytics" className="text-xs text-primary hover:underline">
+              View analytics
+            </Link>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard label="Spend" value={money(totals!.cost)} icon={DollarSign} />
+            <StatCard label="ROAS" value={`${totals!.roas.toFixed(2)}x`} icon={TrendingUp} />
+            <StatCard
+              label="Conversions"
+              value={totals!.conversions.toLocaleString()}
+              icon={Target}
+            />
+            <StatCard
+              label="CTR"
+              value={`${(totals!.ctr * 100).toFixed(2)}%`}
+              icon={MousePointerClick}
+            />
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
