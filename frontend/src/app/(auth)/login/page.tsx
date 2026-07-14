@@ -65,6 +65,11 @@ export default function LoginPage() {
               <p className="text-xs text-destructive">{errors.password.message}</p>
             )}
           </div>
+          <div className="text-right">
+            <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+              Forgot password?
+            </Link>
+          </div>
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting && <Spinner className="size-4" />} Sign in
           </Button>

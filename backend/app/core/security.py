@@ -148,6 +148,31 @@ def verify_signed_state(token: str) -> dict[str, Any]:
     return payload
 
 
+def create_password_reset_token(user_id: str | uuid.UUID, *, ttl_seconds: int = 3600) -> str:
+    """Signed, time-limited password-reset token."""
+    now = datetime.now(UTC)
+    payload = {
+        "sub": str(user_id),
+        "purpose": "password_reset",
+        "iat": int(now.timestamp()),
+        "exp": int((now + timedelta(seconds=ttl_seconds)).timestamp()),
+    }
+    return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+
+
+def verify_password_reset_token(token: str) -> str:
+    """Return the user id encoded in a valid reset token, or raise."""
+    try:
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+    except jwt.PyJWTError as exc:
+        raise UnauthorizedError(
+            "Invalid or expired reset token.", error_code="invalid_reset_token"
+        ) from exc
+    if payload.get("purpose") != "password_reset":
+        raise UnauthorizedError("Invalid reset token.", error_code="invalid_reset_token")
+    return str(payload["sub"])
+
+
 def sha256(value: str) -> str:
     return hashlib.sha256(value.encode()).hexdigest()
 

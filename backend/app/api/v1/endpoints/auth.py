@@ -11,13 +11,17 @@ from app.core.exceptions import UnauthorizedError, ValidationError
 from app.integrations.google_oauth import GoogleOAuthClient
 from app.schemas.auth import (
     AuthResponse,
+    ForgotPasswordRequest,
     LoginRequest,
     RefreshRequest,
     RegisterRequest,
+    ResetPasswordRequest,
     TokenPair,
 )
+from app.schemas.common import Message
 from app.schemas.user import UserOut
 from app.services.auth import AuthService
+from app.services.email import send_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -100,6 +104,38 @@ async def logout(
     _clear_refresh_cookie(response)
     response.status_code = status.HTTP_204_NO_CONTENT
     return response
+
+
+@router.post("/forgot-password", response_model=Message)
+async def forgot_password(
+    data: ForgotPasswordRequest, session: DbSession
+) -> Message:
+    """Send a password-reset link if an account exists (response never reveals it)."""
+    result = await AuthService(session).request_password_reset(email=data.email)
+    if result is not None:
+        user, token = result
+        link = f"{settings.FRONTEND_BASE_URL}/reset-password?token={token}"
+        await send_email(
+            to=user.email,
+            subject="Reset your password",
+            html=(
+                "<p>We received a request to reset your password. This link is valid for "
+                f'1 hour:</p><p><a href="{link}">{link}</a></p>'
+                "<p>If you didn't request this, you can ignore this email.</p>"
+            ),
+        )
+    return Message(message="If an account with that email exists, a reset link has been sent.")
+
+
+@router.post("/reset-password", response_model=Message)
+async def reset_password(
+    data: ResetPasswordRequest, session: DbSession, meta: RequestMetadata
+) -> Message:
+    """Reset a password using a valid reset token; revokes all existing sessions."""
+    await AuthService(session).reset_password(
+        token=data.token, new_password=data.new_password, meta=meta
+    )
+    return Message(message="Password updated. Please sign in with your new password.")
 
 
 @router.get("/me", response_model=UserOut)

@@ -162,6 +162,35 @@ class AuthService:
         await self.session.commit()
         return tokens
 
+    # -- Password reset ----------------------------------------------------
+    async def request_password_reset(self, *, email: str) -> tuple[User, str] | None:
+        """Return ``(user, reset_token)`` if a password account exists, else None."""
+        user = await self.users.get_by_email(email.lower())
+        if user is None or user.hashed_password is None or not user.is_active:
+            return None
+        from app.core.security import create_password_reset_token
+
+        return user, create_password_reset_token(user.id)
+
+    async def reset_password(
+        self, *, token: str, new_password: str, meta: RequestMeta
+    ) -> None:
+        from app.core.security import verify_password_reset_token
+
+        user_id = uuid.UUID(verify_password_reset_token(token))
+        user = await self.users.get(user_id)
+        if user is None or not user.is_active:
+            raise UnauthorizedError("Invalid reset token.", error_code="invalid_reset_token")
+
+        user.hashed_password = hash_password(new_password)
+        # Invalidate all existing sessions after a password change.
+        await self.refresh_tokens.revoke_all_for_user(user.id)
+        await self.audit.record(
+            "user.password_reset", actor_user_id=user.id, resource_type="user",
+            resource_id=str(user.id), meta=meta,
+        )
+        await self.session.commit()
+
     async def logout(self, *, refresh_token: str | None) -> None:
         if not refresh_token:
             return
