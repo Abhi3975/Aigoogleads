@@ -73,6 +73,12 @@ class ExternalServiceError(AppError):
     message = "An upstream service failed."
 
 
+class RateLimitError(AppError):
+    status_code = status.HTTP_429_TOO_MANY_REQUESTS
+    error_code = "rate_limited"
+    message = "Too many requests. Please slow down."
+
+
 def _error_body(error_code: str, message: str, details: Any | None = None) -> dict[str, Any]:
     body: dict[str, Any] = {"error": {"code": error_code, "message": message}}
     if details is not None:

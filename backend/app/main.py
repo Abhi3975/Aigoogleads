@@ -17,6 +17,7 @@ from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.exceptions import register_exception_handlers
 from app.core.logging import configure_logging, get_logger
+from app.core.middleware import RequestContextMiddleware, SecurityHeadersMiddleware
 
 logger = get_logger(__name__)
 
@@ -55,7 +56,9 @@ def create_application() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # --- CORS ---
+    # --- Middleware (outermost added last) ---
+    app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(RequestContextMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.BACKEND_CORS_ORIGINS,

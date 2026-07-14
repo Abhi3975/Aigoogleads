@@ -37,5 +37,14 @@ async def readiness() -> ReadinessResponse:
         logger.warning("readiness_db_failed", error=str(exc))
         checks["database"] = "error"
 
+    try:
+        from app.core.redis import ping_redis
+
+        await ping_redis()
+        checks["redis"] = "ok"
+    except Exception as exc:  # pragma: no cover - exercised only on outage
+        logger.warning("readiness_redis_failed", error=str(exc))
+        checks["redis"] = "error"
+
     overall = "ok" if all(v == "ok" for v in checks.values()) else "degraded"
     return ReadinessResponse(status=overall, checks=checks)
