@@ -222,3 +222,17 @@ class AgentRunOut(BaseModel):
 
 class AgentRunDetailOut(AgentRunOut):
     steps: list[AgentStepOut] = Field(default_factory=list)
+
+
+class AIInsightOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    agent_name: str
+    insight_type: str
+    observation: str
+    outcome: str | None = None
+    importance_score: float
+    confidence: float
+    data: dict = Field(default_factory=dict)
+    created_at: datetime

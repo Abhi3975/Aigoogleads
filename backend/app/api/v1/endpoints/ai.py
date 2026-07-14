@@ -20,10 +20,12 @@ from app.models.organization import OrganizationMembership
 from app.schemas.agents import (
     AgentRunDetailOut,
     AgentRunOut,
+    AIInsightOut,
     BusinessContext,
     OptimizeRequest,
 )
 from app.services.ai import AIService
+from app.services.ai_insights import AIInsightService
 
 router = APIRouter(prefix="/organizations/{organization_id}/ai", tags=["ai-agents"])
 
@@ -97,6 +99,24 @@ async def get_run(
     if run is None:
         raise NotFoundError("Run not found.")
     return AgentRunDetailOut.model_validate(run)
+
+
+@router.get("/insights", response_model=list[AIInsightOut])
+async def list_insights(
+    organization_id: uuid.UUID,
+    membership: CurrentMembership,
+    session: DbSession,
+    pagination: PaginationParams,
+    insight_type: str | None = None,
+) -> list[AIInsightOut]:
+    """List AI learnings/insights, ranked by importance then recency (any member)."""
+    insights = await AIInsightService(session).list_ranked(
+        organization_id,
+        insight_type=insight_type,
+        offset=pagination.offset,
+        limit=pagination.limit,
+    )
+    return [AIInsightOut.model_validate(i) for i in insights]
 
 
 @router.get("/memory/{namespace}")

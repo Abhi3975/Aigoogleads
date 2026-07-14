@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.agent import AgentMemory, AgentRun, AgentStep
+from app.models.agent import AgentMemory, AgentRun, AgentStep, AIInsight
 from app.repositories.base import BaseRepository
 
 
@@ -74,6 +74,31 @@ class AgentMemoryRepository(BaseRepository[AgentMemory]):
                 AgentMemory.namespace == namespace,
             )
             .order_by(AgentMemory.key)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+
+class AIInsightRepository(BaseRepository[AIInsight]):
+    def __init__(self, session: AsyncSession) -> None:
+        super().__init__(AIInsight, session)
+
+    async def list_ranked(
+        self,
+        organization_id: uuid.UUID,
+        *,
+        insight_type: str | None = None,
+        offset: int = 0,
+        limit: int = 50,
+    ) -> list[AIInsight]:
+        """Insights ordered by importance, then recency (retrieval ranking)."""
+        stmt = select(AIInsight).where(AIInsight.organization_id == organization_id)
+        if insight_type is not None:
+            stmt = stmt.where(AIInsight.insight_type == insight_type)
+        stmt = (
+            stmt.order_by(AIInsight.importance_score.desc(), AIInsight.created_at.desc())
+            .offset(offset)
+            .limit(limit)
         )
         result = await self.session.execute(stmt)
         return list(result.scalars().all())

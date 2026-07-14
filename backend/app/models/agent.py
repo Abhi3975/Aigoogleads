@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -88,3 +88,26 @@ class AgentMemory(UUIDMixin, TimestampMixin, Base):
     namespace: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     key: Mapped[str] = mapped_column(String(128), nullable=False)
     value: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, nullable=False)
+    # Importance drives retrieval ranking (higher = surfaced first, kept longer).
+    importance_score: Mapped[float] = mapped_column(Numeric(4, 2), default=0.5, nullable=False)
+
+
+class AIInsight(UUIDMixin, TimestampMixin, Base):
+    """A durable learning/observation the AI recorded from outcomes."""
+
+    __tablename__ = "ai_insights"
+
+    organization_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("organizations.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    agent_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    # optimization | performance | hypothesis | anomaly | strategy | ...
+    insight_type: Mapped[str] = mapped_column(String(48), nullable=False, index=True)
+    observation: Mapped[str] = mapped_column(Text, nullable=False)
+    outcome: Mapped[str | None] = mapped_column(Text, nullable=True)
+    importance_score: Mapped[float] = mapped_column(Numeric(4, 2), default=0.5, nullable=False)
+    confidence: Mapped[float] = mapped_column(Numeric(4, 2), default=0.5, nullable=False)
+    data: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, nullable=False)

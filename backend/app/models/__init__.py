@@ -4,7 +4,7 @@ Importing every model here ensures they are registered on ``Base.metadata``
 so Alembic autogeneration and ``create_all`` see the full schema.
 """
 
-from app.models.agent import AgentMemory, AgentRun, AgentStep
+from app.models.agent import AgentMemory, AgentRun, AgentStep, AIInsight
 from app.models.audit_log import AuditLog
 from app.models.base import Base, SoftDeleteMixin, TimestampMixin, UUIDMixin
 from app.models.campaign import (
@@ -31,6 +31,7 @@ from app.models.refresh_token import RefreshToken
 from app.models.user import User
 
 __all__ = [
+    "AIInsight",
     "AdMetric",
     "AgentMemory",
     "AgentRun",

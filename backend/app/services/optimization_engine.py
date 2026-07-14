@@ -23,6 +23,7 @@ from app.models.optimization import OptimizationLog
 from app.repositories.agent import AgentRunRepository
 from app.repositories.optimization import OptimizationLogRepository, OptimizationPolicyRepository
 from app.schemas.agents import RecommendationType
+from app.services.ai_insights import AIInsightService
 from app.services.google_ads import GoogleAdsService
 from app.services.metrics import MetricsService, metric_to_payload
 from app.services.notification import NotificationService
@@ -129,6 +130,21 @@ class OptimizationEngine:
                     actor_user_id,
                 )
                 counts[status] = counts.get(status, 0) + 1
+
+            # Record a durable learning from this run (importance grows with impact).
+            await AIInsightService(self.session).record(
+                organization_id=organization_id,
+                agent_name="optimization_engine",
+                insight_type="optimization",
+                observation=(
+                    f"Optimization run for account {customer_id}: applied "
+                    f"{counts['applied']}, pending {counts['pending']}, rejected "
+                    f"{counts['rejected']}, failed {counts['failed']}."
+                ),
+                importance_score=min(1.0, 0.4 + 0.1 * counts["applied"]),
+                confidence=0.7,
+                data=counts,
+            )
 
             run.output = {"counts": counts, "recommendations": len(recs.recommendations)}
             run.status = "completed"
