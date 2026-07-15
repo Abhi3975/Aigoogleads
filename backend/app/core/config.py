@@ -7,10 +7,10 @@ validated at import time via Pydantic; the app fails fast on misconfiguration.
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import Field, PostgresDsn, computed_field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 Environment = Literal["local", "development", "staging", "production"]
 
@@ -46,7 +46,11 @@ class Settings(BaseSettings):
     ENCRYPTION_KEY: str = ""
 
     # --- CORS ---
-    BACKEND_CORS_ORIGINS: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
+    # ``NoDecode`` keeps pydantic-settings from JSON-parsing the raw env value so
+    # our validator can accept either a comma-separated string or a JSON array.
+    BACKEND_CORS_ORIGINS: Annotated[list[str], NoDecode] = Field(
+        default_factory=lambda: ["http://localhost:3000"]
+    )
 
     # --- Database ---
     POSTGRES_USER: str = "aiads"
@@ -83,6 +87,13 @@ class Settings(BaseSettings):
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
     EMAIL_FROM: str = "no-reply@ai-ads-agent.local"
+
+    # --- Billing (Stripe) ---
+    STRIPE_SECRET_KEY: str = ""
+    STRIPE_WEBHOOK_SECRET: str = ""
+    STRIPE_PRICE_STARTER: str = ""
+    STRIPE_PRICE_GROWTH: str = ""
+    STRIPE_PRICE_ENTERPRISE: str = ""
 
     # --- Safety controls ---
     # Hard cap on the daily budget any autonomously-created campaign may set,

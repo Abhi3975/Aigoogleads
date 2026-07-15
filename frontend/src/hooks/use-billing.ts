@@ -22,6 +22,12 @@ export function usePlans(orgId: string | undefined) {
   });
 }
 
+export function useCheckout(orgId: string) {
+  return useMutation({
+    mutationFn: (plan: string) => api.post<{ url: string }>(`${base(orgId)}/checkout`, { plan }),
+  });
+}
+
 export function useChangePlan(orgId: string) {
   const qc = useQueryClient();
   return useMutation({

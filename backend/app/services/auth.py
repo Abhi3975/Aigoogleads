@@ -172,9 +172,7 @@ class AuthService:
 
         return user, create_password_reset_token(user.id)
 
-    async def reset_password(
-        self, *, token: str, new_password: str, meta: RequestMeta
-    ) -> None:
+    async def reset_password(self, *, token: str, new_password: str, meta: RequestMeta) -> None:
         from app.core.security import verify_password_reset_token
 
         user_id = uuid.UUID(verify_password_reset_token(token))
@@ -186,8 +184,11 @@ class AuthService:
         # Invalidate all existing sessions after a password change.
         await self.refresh_tokens.revoke_all_for_user(user.id)
         await self.audit.record(
-            "user.password_reset", actor_user_id=user.id, resource_type="user",
-            resource_id=str(user.id), meta=meta,
+            "user.password_reset",
+            actor_user_id=user.id,
+            resource_type="user",
+            resource_id=str(user.id),
+            meta=meta,
         )
         await self.session.commit()
 

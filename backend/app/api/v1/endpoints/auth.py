@@ -107,9 +107,7 @@ async def logout(
 
 
 @router.post("/forgot-password", response_model=Message)
-async def forgot_password(
-    data: ForgotPasswordRequest, session: DbSession
-) -> Message:
+async def forgot_password(data: ForgotPasswordRequest, session: DbSession) -> Message:
     """Send a password-reset link if an account exists (response never reveals it)."""
     result = await AuthService(session).request_password_reset(email=data.email)
     if result is not None:

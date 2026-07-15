@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Spinner } from '@/components/ui/spinner';
-import { useBillingStatus, useChangePlan, usePlans } from '@/hooks/use-billing';
+import { useBillingStatus, useChangePlan, useCheckout, usePlans } from '@/hooks/use-billing';
 import { useCurrentOrg } from '@/hooks/use-organizations';
 import { ApiError } from '@/lib/api';
 
@@ -31,14 +31,30 @@ export default function BillingPage() {
   const status = useBillingStatus(orgId);
   const plans = usePlans(orgId);
   const changePlan = useChangePlan(orgId ?? '');
+  const checkout = useCheckout(orgId ?? '');
   const isOwner = org?.role === 'owner';
+  const switching = checkout.isPending || changePlan.isPending;
 
-  async function onSwitch(plan: string) {
+  async function directSwitch(plan: string) {
     try {
       await changePlan.mutateAsync(plan);
       toast.success(`Switched to the ${plan} plan`);
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : 'Could not change plan');
+    }
+  }
+
+  async function onSwitch(plan: string) {
+    try {
+      const { url } = await checkout.mutateAsync(plan);
+      window.location.href = url; // Stripe Checkout
+    } catch (err) {
+      // No payment provider configured — switch the plan directly.
+      if (err instanceof ApiError && err.code === 'billing_not_configured') {
+        await directSwitch(plan);
+      } else {
+        toast.error(err instanceof ApiError ? err.message : 'Checkout failed');
+      }
     }
   }
 
@@ -108,10 +124,10 @@ export default function BillingPage() {
                       ) : (
                         <Button
                           className="w-full"
-                          disabled={!isOwner || changePlan.isPending}
+                          disabled={!isOwner || switching}
                           onClick={() => void onSwitch(p.plan)}
                         >
-                          {changePlan.isPending && <Spinner className="size-4" />}
+                          {switching && <Spinner className="size-4" />}
                           {isOwner ? `Switch to ${p.plan}` : 'Owner only'}
                         </Button>
                       )}

@@ -39,6 +39,12 @@ class Organization(UUIDMixin, TimestampMixin, SoftDeleteMixin, Base):
         index=True,
     )
 
+    # Stripe billing linkage (set once a subscription is created).
+    stripe_customer_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    stripe_subscription_id: Mapped[str | None] = mapped_column(
+        String(64), nullable=True, index=True
+    )
+
     memberships: Mapped[list[OrganizationMembership]] = relationship(
         back_populates="organization",
         cascade="all, delete-orphan",

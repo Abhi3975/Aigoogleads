@@ -20,3 +20,11 @@ class BillingStatus(BaseModel):
 
 class PlanChange(BaseModel):
     plan: OrgPlan
+
+
+class CheckoutRequest(BaseModel):
+    plan: OrgPlan
+
+
+class CheckoutSession(BaseModel):
+    url: str
